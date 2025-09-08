@@ -3,6 +3,7 @@
 #include "../m/CalculadoraBinario.h"
 #include "../m/CalculadoraDecimal.h"
 #include "../m/CalculadoraOctal.h"
+#include "../v/LimpiarPantalla.h"
 #include <iostream>
 #include <cstdlib>
 
@@ -11,7 +12,8 @@ using namespace std;
 void MenuCalculadora::ejecutarMenu(){
     int x1, x2, operacion;
 	Calculadora* calculadora = nullptr;
-	system("clear");
+	LimpiarPantalla limpiarPantalla;
+	limpiarPantalla.Limpiar();
 
 
    	while(true){
@@ -19,7 +21,7 @@ void MenuCalculadora::ejecutarMenu(){
    		if(cin >> x1 && x1 > 0 && x1 <=3){ break; }
 		else{
 			cout << "Dato invalido" << endl;
-			system("clear");
+			limpiarPantalla.Limpiar();
 			cin.clear();
 			cin.ignore();
 		}
@@ -33,26 +35,26 @@ void MenuCalculadora::ejecutarMenu(){
 	}else if(x1 == 3){
 		calculadora = new CalculadoraDecimal();
 	}
-	system("clear");
+	limpiarPantalla.Limpiar();
 
 	while(true){
 			cout << "Numero 1: ";
 		if(cin >> x1 && calculadora->validarNumero(x1)){ break; }
 		else{
-				system("clear");
+				limpiarPantalla.Limpiar();
 				cout << "Dato invalido" << endl;
 		}
 		cin.clear();
 		cin.ignore();
 	}
-	system("clear");
+	limpiarPantalla.Limpiar();
 	
 
    	while(true){
        	cout << "Numero 2: ";
        	if(cin >> x2 && calculadora->validarNumero(x2)){ break; }
 		else{
-			system("clear");
+			limpiarPantalla.Limpiar();
 			cout << "Dato invalido" << endl;
 		}
 		cin.clear();
@@ -65,7 +67,7 @@ void MenuCalculadora::ejecutarMenu(){
 
 
    	while(true){
-       	system("clear");
+       	limpiarPantalla.Limpiar();
        	cout << "1. Suma (" << calculadora->getN1() << "+" << calculadora->getN2() << ")" << endl << "2. Resta (" << calculadora->getN1() << "-" << calculadora->getN2() << ")" << endl;
        	if(cin >> operacion && operacion > 0 && operacion <= 2){ break; }
    	}
@@ -76,6 +78,6 @@ void MenuCalculadora::ejecutarMenu(){
    	}
 
 	
-	system("clear");
+	limpiarPantalla.Limpiar();
    	cout << calculadora->convercionSalida() << endl;
 };
