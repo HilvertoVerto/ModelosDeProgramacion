@@ -12,6 +12,7 @@ public class Cliente {
         System.out.println("1. Humanos");
         System.out.println("2. Elfos");
         System.out.println("3. Orcos");
+        System.out.println("4. Enanos");
         System.out.print("Elige una opción: ");
         int opcionRaza = scanner.nextInt();
 
@@ -21,6 +22,7 @@ public class Cliente {
             case 1 -> fabrica = FabricaHumanos.getInstancia();
             case 2 -> fabrica = FabricaElfos.getInstancia();
             case 3 -> fabrica = FabricaOrcos.getInstancia();
+            case 4 -> fabrica = FabricaEnanos.getInstancia();
             default -> {
                 System.out.println("Opción inválida. Se usarán Humanos por defecto.");
                 fabrica = FabricaHumanos.getInstancia();
