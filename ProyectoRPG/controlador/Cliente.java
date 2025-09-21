@@ -16,16 +16,16 @@ public class Cliente {
         System.out.print("Elige una opción: ");
         int opcionRaza = scanner.nextInt();
 
-        FabricaAbstracta fabrica;
+        FabricaManager manager = FabricaManager.getInstancia();
 
         switch (opcionRaza) {
-            case 1 -> fabrica = FabricaHumanos.getInstancia();
-            case 2 -> fabrica = FabricaElfos.getInstancia();
-            case 3 -> fabrica = FabricaOrcos.getInstancia();
-            case 4 -> fabrica = FabricaEnanos.getInstancia();
+            case 1 -> manager.setFabricaActiva(FabricaHumanos.getInstancia());
+            case 2 -> manager.setFabricaActiva(FabricaElfos.getInstancia());
+            case 3 -> manager.setFabricaActiva(FabricaOrcos.getInstancia());
+            case 4 -> manager.setFabricaActiva(FabricaEnanos.getInstancia());
             default -> {
                 System.out.println("Opción inválida. Se usarán Humanos por defecto.");
-                fabrica = FabricaHumanos.getInstancia();
+                manager.setFabricaActiva(FabricaHumanos.getInstancia());
             }
         }
 
@@ -37,6 +37,8 @@ public class Cliente {
         System.out.println("4. Armadura");
         System.out.print("Elige una opción: ");
         int opcionProducto = scanner.nextInt();
+
+        FabricaAbstracta fabrica = manager.getFabricaActiva();
 
         System.out.println("\n=== Objeto creado ===");
         switch (opcionProducto) {
