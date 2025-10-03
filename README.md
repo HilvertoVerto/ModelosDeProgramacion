@@ -59,5 +59,20 @@ Para acceder al código más reciente, se recomienda trabajar sobre dicha rama e
 
 ---
 
+## 4. Explicación del proyecto
+
+## Nota sobre la rama principal de desarrollo
+
+El estado más actualizado y en desarrollo activo de este proyecto se encuentra en la rama **`reorganizacion`**.
+Este proyecto es un ejemplo de cómo aplicar el **patrón de diseño Composite** en Java dentro de un escenario musical.  
+Se define una interfaz `Musical` con operaciones comunes (`tocar`, `afinar`, `crear`, `eliminar`).  
+A partir de ella:  
+- La clase **Banda** funciona como un objeto compuesto, capaz de contener varios elementos musicales (instrumentos o incluso otras bandas).  
+- La clase **Instrumento** es un objeto simple que solo puede tocar y afinar.  
+- Se crean tres tipos de instrumentos (`Guitarra`, `Tambor`, `Flauta`), con tres ejemplos inventados de cada uno.  
+
+---
+
+El programa permite agrupar instrumentos en una banda, afinarlos y tocarlos, mostrando todo el proceso por consola.
 ## 📝 Notas
 Este repositorio se actualizará con los avances de la materia, integrando nuevos patrones de diseño, prácticas y mejoras en cada proyecto.
