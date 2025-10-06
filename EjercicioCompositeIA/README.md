@@ -1,3 +1,12 @@
+# 📘 Modelos de Programación – ProyectoRPG
+
+---
+
+## 👥 Integrantes
+- **Bettsy Liliana Garces Buritica** – Código estudiantil: 20231020222 
+- **Diego Felipe Barreto Rubiano** – Código estudiantil: 20221020151  
+- **Martin Zuluaga Carreño** – Código estudiantil: 20242020252
+
 # Patrón Composite en Java - Ejemplo Musical
 
 Este proyecto implementa un ejemplo sencillo del **patrón de diseño Composite** en Java.  
