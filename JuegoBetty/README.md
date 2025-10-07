@@ -1,4 +1,4 @@
-## 4️⃣ JuegoBetty
+##  JuegoBetty
 
 ### 👥 Integrantes
 
