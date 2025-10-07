@@ -1,10 +1,12 @@
 ## 4️⃣ JuegoBetty
 
-#### 👥 Integrantes
+### 👥 Integrantes
 
 - **Bettsy Liliana Garces Buritica** – Código estudiantil: 20231020222 
 - **Diego Felipe Barreto Rubiano** – Código estudiantil: 20221020151  
 - **Martin Zuluaga Carreño** – Código estudiantil: 20242020252
+
+---
 
 - **Lenguaje:** Python  
 - **Descripción:**  
