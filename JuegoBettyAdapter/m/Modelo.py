@@ -1,4 +1,9 @@
-"""Modelo principal - Coordina todos los componentes"""
+"""
+Modelo principal - Coordina todos los componentes
+
+PATRÓN DECORATOR EN ACCIÓN:
+El BuffManager gestiona los decoradores que modifican al jugador.
+"""
 import pygame
 from m.Constants import *
 from m.SpriteLoader import SpriteLoader
@@ -12,29 +17,48 @@ class Modelo:
     
     def __init__(self, sprite_root="graficos/Sprites"):
         self.sprite_loader = SpriteLoader(sprite_root)
+        
+        # COMPONENTE BASE (sin decorar)
         self.player = BasePlayer(sprite_loader=self.sprite_loader)
+        
+        # GESTOR DE DECORADORES
         self.buff_manager = BuffManager()
+        
         self.item_manager = ItemManager()
         self.buff_duration = BUFF_DURATION
-        self.active_buffs = []  # Compatibilidad
+        self.active_buffs = []
         
-        # Para compatibilidad con Vista (acceso directo a items_on_floor)
+        # Para compatibilidad con Vista
         self.items_on_floor = self.item_manager.items
 
     def update(self, dt):
-        """Actualiza el estado del juego"""
+        """
+        Actualiza el estado del juego.
+        
+        PATRÓN DECORATOR EN ACCIÓN:
+        El BuffManager mantiene los decoradores y los aplica al jugador.
+        """
         # Actualizar ítems
         self.item_manager.update(dt)
         
-        # Actualizar buffs
+        # Actualizar decoradores (pueden expirar)
         self.buff_manager.update()
         
-        # Aplicar buffs al jugador
-        self.player.base_category = self.buff_manager.clothes_type
-        self.player.front_index = self.buff_manager.front_level
-        self.player.base_speed = BASE_SPEED * self.buff_manager.get_speed_multiplier()
+        # ===== APLICAR DECORADORES AL JUGADOR =====
+        # Obtener el jugador decorado
+        decorated = self.buff_manager.get_decorated_player()
+        appearance = decorated.get_appearance()
         
-        # Actualizar física del jugador
+        # DECORADOR: Apariencia de ropa
+        self.player.base_category = appearance["clothes"]
+        
+        # DECORADOR: Tamaño de frente
+        self.player.front_index = appearance["forehead"]
+        
+        # DECORADOR: Velocidad aumentada
+        self.player.base_speed = decorated.get_speed()
+        
+        # El jugador funciona normalmente con sus propiedades decoradas
         self.player.update_physics(dt)
         
         # Verificar colisiones con ítems
