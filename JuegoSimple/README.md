@@ -27,3 +27,7 @@ El diseño sigue los principios **SOLID** para asegurar un código robusto, fác
 
 ```bash
 python juego.py
+
+Este diagrama ilustra la arquitectura de la batalla de RPG, destacando la interacción entre los comandos, los manejadores de validación y las entidades del juego.
+
+![Diagrama UML de los Patrones Command y Chain of Responsibility](DiagramaDeClases.png)
