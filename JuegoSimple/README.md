@@ -26,4 +26,4 @@ El diseño sigue los principios **SOLID** para asegurar un código robusto, fác
 - **Ejecución:** El proyecto se ejecuta directamente desde el archivo principal:
 
 ```bash
-python main.py
+python juego.py
