@@ -31,4 +31,4 @@ python juego.py
 
 ## 📊 Diagrama de Clases
 
-![Diagrama de Clases](DiagramaDeClases.md)
+![Diagrama de Clases](DiagramaDeClases.png)
