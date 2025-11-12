@@ -73,11 +73,12 @@ class Subject(ABC):
 class Bloque(Observer, Subject):
     """Representa un bloque en el juego que puede observar y ser observado"""
 
-    def __init__(self, valor: int, fila: int, columna: int, es_nuevo: bool = False):
+    def __init__(self, valor: int, fila: int, columna: int, juego: 'Juego' = None, es_nuevo: bool = False):
         Subject.__init__(self)
         self.valor = valor
         self.fila = fila
         self.columna = columna
+        self.juego = juego  # Referencia al juego para poder eliminarse
         self.es_nuevo = es_nuevo  # True si acaba de ser colocado, False si ya existía
 
     def actualizar(self, subject, es_nuevo: bool):
@@ -86,11 +87,13 @@ class Bloque(Observer, Subject):
 
         Args:
             subject: El bloque vecino que notifica
-            es_nuevo: True si este bloque es el recién colocado
+            es_nuevo: True si este bloque es el recién colocado, False si ya existía
         """
-        # Aquí iría la lógica según si este bloque es nuevo o ya existía
-        # Por ahora solo estructura sin lógica
-        pass
+        # Si este bloque NO es nuevo (es un bloque viejo) y tiene un vecino igual
+        # entonces debe eliminarse (para simular la fusión)
+        if not es_nuevo and self.juego is not None:
+            # El bloque viejo se elimina cuando detecta un vecino igual
+            self.juego.eliminar_bloque(self)
 
     def es_contiguo(self, otro_bloque: 'Bloque') -> bool:
         """Verifica si otro bloque es contiguo (adyacente) a este"""
@@ -144,6 +147,11 @@ class Juego:
 
         return contiguos
 
+    def eliminar_bloque(self, bloque: Bloque):
+        """Elimina un bloque de la cuadrícula"""
+        if 0 <= bloque.fila < FILAS and 0 <= bloque.columna < COLUMNAS:
+            self.cuadricula[bloque.fila][bloque.columna] = None
+
     def configurar_observers(self, nuevo_bloque: Bloque):
         """
         Configura las relaciones de observer entre el nuevo bloque y sus vecinos contiguos.
@@ -172,8 +180,12 @@ class Juego:
             nuevo_bloque.agregar_observer(vecino)
 
             # Notificar al vecino que hay un nuevo bloque contiguo con el mismo valor
-            # El vecino NO es nuevo (es_nuevo=False)
+            # El vecino NO es nuevo (es_nuevo=False), por lo que se eliminará
             vecino.actualizar(nuevo_bloque, es_nuevo=False)
+
+        # Después de eliminar los bloques viejos, aplicar gravedad
+        if len(vecinos_iguales) > 0:
+            self.aplicar_gravedad()
 
         # El nuevo bloque notifica que ha sido colocado
         # Este bloque SÍ es nuevo (es_nuevo=True)
@@ -192,7 +204,7 @@ class Juego:
         numero = self.proximo_numero
 
         # Crear el nuevo bloque marcándolo como recién colocado
-        nuevo_bloque = Bloque(numero, 0, columna, es_nuevo=True)
+        nuevo_bloque = Bloque(numero, 0, columna, juego=self, es_nuevo=True)
 
         # Colocar en la primera fila
         self.cuadricula[0][columna] = nuevo_bloque
