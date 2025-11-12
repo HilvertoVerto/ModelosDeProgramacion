@@ -21,6 +21,7 @@ BLANCO = (255, 255, 255)
 NEGRO = (0, 0, 0)
 GRIS = (200, 200, 200)
 GRIS_OSCURO = (100, 100, 100)
+ROJO = (255, 0, 0)
 
 # Paleta de colores para bloques (estilo 2048)
 COLOR_2 = (238, 228, 218)
@@ -364,8 +365,12 @@ class Juego:
         }
         return colores.get(numero, BLANCO)
 
-    def dibujar(self):
-        """Dibuja el juego en la pantalla"""
+    def dibujar(self, columna_destacada=None):
+        """Dibuja el juego en la pantalla
+
+        Args:
+            columna_destacada: Columna a resaltar con borde rojo (None si no hay)
+        """
         pantalla.fill(BLANCO)
 
         # Dibujar cuadrícula
@@ -374,8 +379,10 @@ class Juego:
                 x = col * TAMANO_CELDA
                 y = fila * TAMANO_CELDA + 60
 
-                # Dibujar celda
-                pygame.draw.rect(pantalla, GRIS, (x, y, TAMANO_CELDA, TAMANO_CELDA), 2)
+                # Dibujar celda (con borde rojo si es la columna destacada)
+                color_borde = ROJO if col == columna_destacada else GRIS
+                grosor_borde = 3 if col == columna_destacada else 2
+                pygame.draw.rect(pantalla, color_borde, (x, y, TAMANO_CELDA, TAMANO_CELDA), grosor_borde)
 
                 # Dibujar número si existe
                 bloque = self.cuadricula[fila][col]
@@ -473,7 +480,15 @@ def main():
                     if juego.caretaker.tiene_historial():
                         juego.deshacer_jugada()
 
-        juego.dibujar()
+        # Detectar posición del mouse para resaltar columna
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        columna_destacada = None
+        if mouse_y >= 60 and mouse_y < ALTO:
+            columna = mouse_x // TAMANO_CELDA
+            if 0 <= columna < COLUMNAS:
+                columna_destacada = columna
+
+        juego.dibujar(columna_destacada)
         reloj.tick(FPS)
 
     pygame.quit()
