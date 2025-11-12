@@ -30,15 +30,15 @@ Bloque nuevo (2) × 2 = 4
 **2 vecinos iguales:**
 ```
 Antes:    Después:
-  2
-2 2 2  →     8
+  
+2 2 2    →     8
 ```
 Bloque nuevo (2) × 4 = 8
 
 **3 vecinos iguales:**
 ```
 Antes:    Después:
-  2
+
 2 2 2  →    16
   2
 ```
