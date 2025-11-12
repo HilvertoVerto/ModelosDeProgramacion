@@ -6,6 +6,8 @@ Un juego estilo 2048 implementado en Python usando Pygame, que demuestra el uso 
 
 Este es un juego de puzzle donde debes colocar bloques con números (2, 4 u 8) en una cuadrícula de 6x7. Cuando colocas un bloque junto a otros bloques del mismo valor, se fusionan multiplicando su valor.
 
+**Nota**: El proyecto está organizado en múltiples módulos Python (constants.py, memento.py, strategy.py, observer.py, game.py) para una mejor separación de responsabilidades. El juego se ejecuta desde `main.py`.
+
 ### Mecánica del Juego
 
 - **Colocación**: Haz clic en una columna para colocar un bloque
@@ -46,7 +48,7 @@ Bloque nuevo (2) × 8 = 16
 
 ### 1. Patrón Memento
 
-**Ubicación**: `juego_bloques.py:50-95`
+**Ubicación**: `memento.py`
 
 **Propósito**: Permite deshacer jugadas guardando y restaurando estados previos del juego sin violar el principio de encapsulación.
 
@@ -79,7 +81,7 @@ self.restaurar_memento(memento)
 
 ### 2. Patrón Estrategia (Strategy)
 
-**Ubicación**: `juego_bloques.py:98-167`
+**Ubicación**: `strategy.py`
 
 **Propósito**: Define una familia de algoritmos para calcular el multiplicador de bloques según la cantidad de vecinos iguales, encapsulando cada algoritmo y haciéndolos intercambiables.
 
@@ -113,7 +115,7 @@ nuevo_bloque.valor = self.contexto_multiplicacion.calcular_nuevo_valor(
 
 ### 3. Patrón Observer
 
-**Ubicación**: `juego_bloques.py:170-247`
+**Ubicación**: `observer.py`
 
 **Propósito**: Define una dependencia uno-a-muchos entre objetos, de modo que cuando un objeto cambia de estado, todos sus dependientes son notificados automáticamente.
 
@@ -174,7 +176,13 @@ venv\Scripts\activate  # En Windows
 
 1. Ejecuta el juego:
 ```bash
-python juego_bloques.py
+python main.py
+```
+
+O si usas el entorno virtual:
+```bash
+source venv/bin/activate  # En Linux/Mac
+python main.py
 ```
 
 2. **Controles**:
@@ -186,37 +194,57 @@ python juego_bloques.py
 
 ## Estructura del Código
 
+El proyecto está organizado en módulos separados, cada uno con una responsabilidad específica:
+
 ```
-juego_bloques.py
-├── Patrón Memento (líneas 50-95)
-│   ├── Memento                      # Guarda estados del juego (cuadrícula + próximo número)
-│   └── Caretaker                    # Maneja historial de hasta 20 estados
+Juego2048/
 │
-├── Patrón Estrategia (líneas 98-167)
-│   ├── EstrategiaMultiplicacion    # Interfaz abstracta (ABC)
-│   ├── EstrategiaUnVecino          # Multiplica por 2 (1 vecino igual)
-│   ├── EstrategiaDosVecinos        # Multiplica por 4 (2 vecinos iguales)
-│   ├── EstrategiaTresVecinos       # Multiplica por 8 (3 vecinos iguales)
-│   └── ContextoMultiplicacion      # Selector de estrategias
+├── constants.py                    # Constantes y configuración de pygame
+│   ├── FILAS, COLUMNAS, TAMANO_CELDA
+│   ├── Colores (BLANCO, NEGRO, COLOR_2, COLOR_4, etc.)
+│   └── Objetos pygame (pantalla, reloj, fuentes)
 │
-├── Patrón Observer (líneas 170-247)
-│   ├── ObserverPatron              # Interfaz para observers
-│   ├── SubjectPatron               # Interfaz para subjects observables
-│   └── Bloque_Observer             # Bloque que observa y es observable
+├── memento.py                      # Patrón Memento
+│   ├── Memento                     # Guarda estados del juego (cuadrícula + próximo número)
+│   └── Caretaker                   # Maneja historial de hasta 20 estados
 │
-├── Clase Juego (líneas 249-526)
-│   ├── crear_memento()             # Crea snapshot del estado (Patrón Memento)
-│   ├── restaurar_memento()         # Restaura estado anterior (Patrón Memento)
-│   ├── deshacer_jugada()           # Deshace última jugada
-│   ├── colocar_bloque()            # Coloca nuevo bloque y guarda estado
-│   ├── configurar_observers()      # Configura relaciones Observer y aplica Estrategia
-│   ├── aplicar_gravedad()          # Hace caer los bloques
-│   ├── obtener_bloques_contiguos() # Encuentra vecinos adyacentes
-│   ├── eliminar_bloque()           # Elimina un bloque de la cuadrícula
-│   └── dibujar()                   # Renderiza el juego en pantalla
+├── strategy.py                     # Patrón Estrategia
+│   ├── EstrategiaMultiplicacion   # Interfaz abstracta (ABC)
+│   ├── EstrategiaUnVecino         # Multiplica por 2 (1 vecino igual)
+│   ├── EstrategiaDosVecinos       # Multiplica por 4 (2 vecinos iguales)
+│   ├── EstrategiaTresVecinos      # Multiplica por 8 (3 vecinos iguales)
+│   └── ContextoMultiplicacion     # Selector de estrategias
 │
-└── main() (líneas 528-575)         # Loop principal del juego
+├── observer.py                     # Patrón Observer
+│   ├── ObserverPatron             # Interfaz para observers
+│   ├── SubjectPatron              # Interfaz para subjects observables
+│   └── Bloque_Observer            # Bloque que observa y es observable
+│
+├── game.py                         # Clase Juego (lógica principal)
+│   ├── crear_memento()            # Crea snapshot del estado (Patrón Memento)
+│   ├── restaurar_memento()        # Restaura estado anterior (Patrón Memento)
+│   ├── deshacer_jugada()          # Deshace última jugada
+│   ├── colocar_bloque()           # Coloca nuevo bloque y guarda estado
+│   ├── configurar_observers()     # Configura relaciones Observer y aplica Estrategia
+│   ├── aplicar_gravedad()         # Hace caer los bloques
+│   ├── obtener_bloques_contiguos()# Encuentra vecinos adyacentes
+│   ├── eliminar_bloque()          # Elimina un bloque de la cuadrícula
+│   └── dibujar()                  # Renderiza el juego en pantalla
+│
+└── main.py                         # Punto de entrada del programa
+    └── main()                      # Loop principal del juego con manejo de eventos
 ```
+
+## Ventajas de la Arquitectura Modular
+
+La separación en múltiples archivos proporciona varios beneficios:
+
+- **Separación de Responsabilidades**: Cada módulo tiene una única responsabilidad claramente definida
+- **Mantenibilidad**: Es más fácil encontrar y modificar código específico
+- **Reutilización**: Los patrones pueden ser reutilizados en otros proyectos
+- **Testing**: Cada módulo puede ser probado independientemente
+- **Claridad**: La estructura refleja visualmente los patrones de diseño implementados
+- **Escalabilidad**: Fácil agregar nuevos patrones o funcionalidades sin afectar el código existente
 
 ## Integración de los Patrones
 
@@ -284,7 +312,7 @@ El botón de deshacer cambia de color:
 
 ## Configuración
 
-Las constantes del juego se pueden modificar al inicio del archivo:
+Las constantes del juego se pueden modificar en el archivo `constants.py`:
 
 ```python
 FILAS = 6              # Altura de la cuadrícula
