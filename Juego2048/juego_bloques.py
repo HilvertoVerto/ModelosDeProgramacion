@@ -157,6 +157,7 @@ class Juego:
         Configura las relaciones de observer entre el nuevo bloque y sus vecinos contiguos.
         Los bloques se observan mutuamente si tienen el mismo valor.
         Si el nuevo bloque tiene vecinos con el mismo valor, se multiplica por 2^n donde n es la cantidad de vecinos.
+        Este proceso se repite recursivamente hasta que no haya más fusiones.
         """
         bloques_contiguos = self.obtener_bloques_contiguos(nuevo_bloque)
         vecinos_iguales = []
@@ -187,9 +188,14 @@ class Juego:
         if len(vecinos_iguales) > 0:
             self.aplicar_gravedad()
 
-        # El nuevo bloque notifica que ha sido colocado
-        # Este bloque SÍ es nuevo (es_nuevo=True)
-        nuevo_bloque.notificar_observers(es_nuevo=True)
+            # Re-evaluar si el bloque con su nuevo valor tiene más vecinos iguales
+            # Esto permite fusiones en cadena
+            self.configurar_observers(nuevo_bloque)
+        else:
+            # Solo notificar cuando ya no hay más fusiones posibles
+            # El nuevo bloque notifica que ha sido colocado
+            # Este bloque SÍ es nuevo (es_nuevo=True)
+            nuevo_bloque.notificar_observers(es_nuevo=True)
 
     def colocar_bloque(self, columna):
         """Coloca un bloque en la columna especificada"""
