@@ -94,6 +94,78 @@ class Caretaker:
         return len(self._historial) > 0
 
 
+# Patrón Estrategia - Para calcular multiplicación de bloques
+class EstrategiaMultiplicacion(ABC):
+    """Interfaz para estrategias de multiplicación de bloques"""
+
+    @abstractmethod
+    def calcular_multiplicador(self, cantidad_vecinos: int) -> int:
+        """
+        Calcula el multiplicador según la cantidad de vecinos iguales
+
+        Args:
+            cantidad_vecinos: Cantidad de bloques adyacentes iguales
+
+        Returns:
+            El multiplicador a aplicar al valor del bloque
+        """
+        pass
+
+
+class EstrategiaUnVecino(EstrategiaMultiplicacion):
+    """Estrategia cuando hay 1 vecino igual: multiplica por 2"""
+
+    def calcular_multiplicador(self, cantidad_vecinos: int) -> int:
+        return 2
+
+
+class EstrategiaDosVecinos(EstrategiaMultiplicacion):
+    """Estrategia cuando hay 2 vecinos iguales: multiplica por 4"""
+
+    def calcular_multiplicador(self, cantidad_vecinos: int) -> int:
+        return 4
+
+
+class EstrategiaTresVecinos(EstrategiaMultiplicacion):
+    """Estrategia cuando hay 3 vecinos iguales: multiplica por 8"""
+
+    def calcular_multiplicador(self, cantidad_vecinos: int) -> int:
+        return 8
+
+
+class ContextoMultiplicacion:
+    """Contexto que usa las estrategias de multiplicación"""
+
+    def __init__(self):
+        # Mapeo de cantidad de vecinos a estrategia
+        self._estrategias = {
+            1: EstrategiaUnVecino(),
+            2: EstrategiaDosVecinos(),
+            3: EstrategiaTresVecinos()
+        }
+
+    def calcular_nuevo_valor(self, valor_actual: int, cantidad_vecinos: int) -> int:
+        """
+        Calcula el nuevo valor del bloque según la cantidad de vecinos
+
+        Args:
+            valor_actual: Valor actual del bloque
+            cantidad_vecinos: Cantidad de vecinos iguales adyacentes
+
+        Returns:
+            El nuevo valor multiplicado
+        """
+        if cantidad_vecinos == 0:
+            return valor_actual
+
+        estrategia = self._estrategias.get(cantidad_vecinos)
+        if estrategia:
+            multiplicador = estrategia.calcular_multiplicador(cantidad_vecinos)
+            return valor_actual * multiplicador
+
+        return valor_actual
+
+
 # Patrón Observer - Interfaces
 class ObserverPatron(ABC):
     """Interfaz para objetos que observan cambios"""
@@ -180,6 +252,7 @@ class Juego:
         self.cayendo = False
         self.proximo_numero = self.generar_numero()  # Número que se colocará
         self.caretaker = Caretaker()  # Maneja el historial de estados
+        self.contexto_multiplicacion = ContextoMultiplicacion()  # Patrón Estrategia para multiplicación
 
     def generar_numero(self):
         """Genera un número aleatorio: 2, 4 u 8"""
@@ -252,7 +325,8 @@ class Juego:
         """
         Configura las relaciones de observer entre el nuevo bloque y sus vecinos contiguos.
         Los bloques se observan mutuamente si tienen el mismo valor.
-        Si el nuevo bloque tiene vecinos con el mismo valor, se multiplica por 2^n donde n es la cantidad de vecinos.
+        Si el nuevo bloque tiene vecinos con el mismo valor, usa el patrón Estrategia para
+        calcular su nuevo valor (×2 con 1 vecino, ×4 con 2 vecinos, ×8 con 3 vecinos).
         Este proceso se repite recursivamente hasta que no haya más fusiones.
         """
         bloques_contiguos = self.obtener_bloques_contiguos(nuevo_bloque)
@@ -263,11 +337,13 @@ class Juego:
             if nuevo_bloque.tiene_valor_igual(vecino):
                 vecinos_iguales.append(vecino)
 
-        # Si hay vecinos con el mismo valor, multiplicar el valor del nuevo bloque
+        # Si hay vecinos con el mismo valor, usar el patrón Estrategia para calcular el nuevo valor
         if len(vecinos_iguales) > 0:
-            # Multiplicar por 2^n donde n es la cantidad de vecinos iguales
-            multiplicador = 2 ** len(vecinos_iguales)
-            nuevo_bloque.valor *= multiplicador
+            # Usar el contexto de multiplicación con la estrategia apropiada
+            nuevo_bloque.valor = self.contexto_multiplicacion.calcular_nuevo_valor(
+                nuevo_bloque.valor,
+                len(vecinos_iguales)
+            )
 
         # Ahora establecer las relaciones de observación
         for vecino in vecinos_iguales:
