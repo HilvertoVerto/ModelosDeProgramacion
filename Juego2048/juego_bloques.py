@@ -1,6 +1,7 @@
 import pygame
 import random
 import sys
+import copy
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
@@ -32,6 +33,54 @@ reloj = pygame.time.Clock()
 # Fuente
 fuente = pygame.font.Font(None, 48)
 fuente_pequena = pygame.font.Font(None, 24)
+
+
+# Patrón Memento - Para deshacer jugadas
+class Memento:
+    """Guarda el estado del juego en un momento dado"""
+
+    def __init__(self, cuadricula_estado, proximo_numero):
+        """
+        Args:
+            cuadricula_estado: Copia profunda de la cuadrícula del juego
+            proximo_numero: El próximo número que se colocará
+        """
+        self._cuadricula_estado = cuadricula_estado
+        self._proximo_numero = proximo_numero
+
+    def obtener_estado(self):
+        """Retorna el estado guardado"""
+        return self._cuadricula_estado, self._proximo_numero
+
+
+class Caretaker:
+    """Maneja el historial de estados del juego"""
+
+    def __init__(self, max_historial=20):
+        """
+        Args:
+            max_historial: Cantidad máxima de estados a guardar
+        """
+        self._historial: List[Memento] = []
+        self._max_historial = max_historial
+
+    def guardar(self, memento: Memento):
+        """Guarda un estado en el historial"""
+        self._historial.append(memento)
+
+        # Limitar el tamaño del historial
+        if len(self._historial) > self._max_historial:
+            self._historial.pop(0)
+
+    def deshacer(self) -> Optional[Memento]:
+        """Retorna el último estado guardado y lo elimina del historial"""
+        if len(self._historial) > 0:
+            return self._historial.pop()
+        return None
+
+    def tiene_historial(self) -> bool:
+        """Verifica si hay estados guardados"""
+        return len(self._historial) > 0
 
 
 # Patrón Observer - Interfaces
@@ -119,10 +168,46 @@ class Juego:
         self.cuadricula: List[List[Optional[Bloque]]] = [[None for _ in range(COLUMNAS)] for _ in range(FILAS)]
         self.cayendo = False
         self.proximo_numero = self.generar_numero()  # Número que se colocará
+        self.caretaker = Caretaker()  # Maneja el historial de estados
 
     def generar_numero(self):
         """Genera un número aleatorio: 2, 4 u 8"""
         return random.choice([2, 4, 8])
+
+    def crear_memento(self) -> Memento:
+        """Crea un memento con el estado actual del juego"""
+        # Hacer una copia profunda de la cuadrícula
+        cuadricula_copia = []
+        for fila in self.cuadricula:
+            fila_copia = []
+            for bloque in fila:
+                if bloque is None:
+                    fila_copia.append(None)
+                else:
+                    # Crear una copia del bloque
+                    bloque_copia = Bloque(bloque.valor, bloque.fila, bloque.columna, self, bloque.es_nuevo)
+                    fila_copia.append(bloque_copia)
+            cuadricula_copia.append(fila_copia)
+
+        return Memento(cuadricula_copia, self.proximo_numero)
+
+    def restaurar_memento(self, memento: Memento):
+        """Restaura el estado del juego desde un memento"""
+        if memento is None:
+            return
+
+        cuadricula_estado, proximo_numero = memento.obtener_estado()
+
+        # Restaurar la cuadrícula
+        self.cuadricula = cuadricula_estado
+        # Actualizar la referencia al juego en todos los bloques
+        for fila in self.cuadricula:
+            for bloque in fila:
+                if bloque is not None:
+                    bloque.juego = self
+
+        # Restaurar el próximo número
+        self.proximo_numero = proximo_numero
 
     def obtener_bloque(self, fila: int, columna: int) -> Optional[Bloque]:
         """Obtiene el bloque en la posición especificada"""
@@ -197,6 +282,11 @@ class Juego:
             # Este bloque SÍ es nuevo (es_nuevo=True)
             nuevo_bloque.notificar_observers(es_nuevo=True)
 
+    def deshacer_jugada(self):
+        """Deshace la última jugada restaurando el estado anterior"""
+        memento = self.caretaker.deshacer()
+        self.restaurar_memento(memento)
+
     def colocar_bloque(self, columna):
         """Coloca un bloque en la columna especificada"""
         if self.cayendo:
@@ -205,6 +295,10 @@ class Juego:
         # Verificar si la columna está llena
         if self.cuadricula[0][columna] is not None:
             return
+
+        # Guardar el estado actual antes de hacer cambios (Patrón Memento)
+        memento = self.crear_memento()
+        self.caretaker.guardar(memento)
 
         # Usar el número precalculado
         numero = self.proximo_numero
@@ -298,7 +392,35 @@ class Juego:
         texto_num_rect = texto_num.get_rect(center=(x_preview + tamano_preview // 2, y_preview + tamano_preview // 2))
         pantalla.blit(texto_num, texto_num_rect)
 
+        # Dibujar botón de deshacer
+        boton_x = ANCHO - 120
+        boton_y = 10
+        boton_ancho = 110
+        boton_alto = 50
+
+        # Color del botón depende de si hay historial
+        if self.caretaker.tiene_historial():
+            color_boton = (100, 200, 100)  # Verde si se puede deshacer
+        else:
+            color_boton = GRIS  # Gris si no hay historial
+
+        pygame.draw.rect(pantalla, color_boton, (boton_x, boton_y, boton_ancho, boton_alto))
+        pygame.draw.rect(pantalla, NEGRO, (boton_x, boton_y, boton_ancho, boton_alto), 2)
+
+        # Texto del botón
+        texto_boton = fuente_pequena.render("Deshacer (Z)", True, NEGRO)
+        texto_boton_rect = texto_boton.get_rect(center=(boton_x + boton_ancho // 2, boton_y + boton_alto // 2))
+        pantalla.blit(texto_boton, texto_boton_rect)
+
         pygame.display.flip()
+
+    def obtener_rect_boton_deshacer(self):
+        """Retorna el rectángulo del botón de deshacer"""
+        boton_x = ANCHO - 120
+        boton_y = 10
+        boton_ancho = 110
+        boton_alto = 50
+        return pygame.Rect(boton_x, boton_y, boton_ancho, boton_alto)
 
 
 def main():
@@ -314,12 +436,23 @@ def main():
                 # Obtener posición del mouse
                 x, y = pygame.mouse.get_pos()
 
+                # Verificar si el clic está en el botón de deshacer
+                rect_boton = juego.obtener_rect_boton_deshacer()
+                if rect_boton.collidepoint(x, y):
+                    if juego.caretaker.tiene_historial():
+                        juego.deshacer_jugada()
                 # Verificar si el clic está en el área de la cuadrícula
-                if y >= 60 and y < ALTO:
+                elif y >= 60 and y < ALTO:
                     # Calcular columna
                     columna = x // TAMANO_CELDA
                     if 0 <= columna < COLUMNAS:
                         juego.colocar_bloque(columna)
+
+            # Manejar tecla Z para deshacer
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_z:
+                    if juego.caretaker.tiene_historial():
+                        juego.deshacer_jugada()
 
         juego.dibujar()
         reloj.tick(FPS)
