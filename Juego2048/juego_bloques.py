@@ -21,9 +21,19 @@ BLANCO = (255, 255, 255)
 NEGRO = (0, 0, 0)
 GRIS = (200, 200, 200)
 GRIS_OSCURO = (100, 100, 100)
+
+# Paleta de colores para bloques (estilo 2048)
 COLOR_2 = (238, 228, 218)
 COLOR_4 = (237, 224, 200)
 COLOR_8 = (242, 177, 121)
+COLOR_16 = (245, 149, 99)
+COLOR_32 = (246, 124, 95)
+COLOR_64 = (246, 94, 59)
+COLOR_128 = (237, 207, 114)
+COLOR_256 = (237, 204, 97)
+COLOR_512 = (237, 200, 80)
+COLOR_1024 = (237, 197, 63)
+COLOR_2048 = (237, 194, 46)
 
 # Configurar ventana
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
@@ -339,13 +349,20 @@ class Juego:
 
     def obtener_color(self, numero):
         """Retorna el color según el número"""
-        if numero == 2:
-            return COLOR_2
-        elif numero == 4:
-            return COLOR_4
-        elif numero == 8:
-            return COLOR_8
-        return BLANCO
+        colores = {
+            2: COLOR_2,
+            4: COLOR_4,
+            8: COLOR_8,
+            16: COLOR_16,
+            32: COLOR_32,
+            64: COLOR_64,
+            128: COLOR_128,
+            256: COLOR_256,
+            512: COLOR_512,
+            1024: COLOR_1024,
+            2048: COLOR_2048
+        }
+        return colores.get(numero, BLANCO)
 
     def dibujar(self):
         """Dibuja el juego en la pantalla"""
@@ -366,8 +383,9 @@ class Juego:
                     color = self.obtener_color(bloque.valor)
                     pygame.draw.rect(pantalla, color, (x + 2, y + 2, TAMANO_CELDA - 4, TAMANO_CELDA - 4))
 
-                    # Dibujar número
-                    texto = fuente.render(str(bloque.valor), True, NEGRO)
+                    # Dibujar número (con contraste según el valor)
+                    color_texto = BLANCO if bloque.valor >= 8 else NEGRO
+                    texto = fuente.render(str(bloque.valor), True, color_texto)
                     texto_rect = texto.get_rect(center=(x + TAMANO_CELDA // 2, y + TAMANO_CELDA // 2))
                     pantalla.blit(texto, texto_rect)
 
@@ -387,8 +405,9 @@ class Juego:
         pygame.draw.rect(pantalla, color_preview, (x_preview, y_preview, tamano_preview, tamano_preview))
         pygame.draw.rect(pantalla, GRIS_OSCURO, (x_preview, y_preview, tamano_preview, tamano_preview), 2)
 
-        # Dibujar el número del próximo bloque
-        texto_num = fuente_pequena.render(str(self.proximo_numero), True, NEGRO)
+        # Dibujar el número del próximo bloque (con contraste)
+        color_texto_preview = BLANCO if self.proximo_numero >= 8 else NEGRO
+        texto_num = fuente_pequena.render(str(self.proximo_numero), True, color_texto_preview)
         texto_num_rect = texto_num.get_rect(center=(x_preview + tamano_preview // 2, y_preview + tamano_preview // 2))
         pantalla.blit(texto_num, texto_num_rect)
 
