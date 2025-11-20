@@ -1,10 +1,4 @@
 # Taller Anti-patrones
-
-Modelos de Programacion  
-Presentado por: Diego Felipe Barreto Rubiano — 20221020151  
-Universidad Distrital Francisco Jose de Caldas — Facultad de Ingenieria  
-Bogota D.C
-
 ## Que antipatrones se encuentran en el codigo Java
 **God Object**  
 La clase `GlobalManager` concentraba la lectura de usuarios (`loadUsers`), el procesamiento con `Map<String,String>`, el calculo de descuentos, el calculo de envios, la impresion de resultados y `main`. Al mezclar datos, logica de negocio y presentacion en un solo lugar se vuelve dificil de mantener, probar y extender.
@@ -445,13 +439,3 @@ class ShippingService {
 - Codigo original: ![Diagrama original](image5.png)
 - Codigo aplicando las 3 fases (Good Object, Copy-Paste, Magic Numbers): ![Diagrama refactor](image6.png)
 
-## Estructura actual (archivo unico)
-- `src/GlobalManager.java`: contiene GlobalManager, User, UserRepository, DiscountService, ShippingType y ShippingService (fase 3, sin numeros magicos).
-
-## Como ejecutar
-```bash
-javac -d bin src/GlobalManager.java
-java -cp bin GlobalManager
-```
-
-El archivo `users.csv` debe existir en el directorio raiz y usar el formato `id;name;tier` (ejemplo: `1;Alice;gold`).
