@@ -4,7 +4,7 @@ import os
 class SpriteLoader:
     """Clase encargada de cargar y gestionar los sprites del juego"""
 
-    def __init__(self, base_path="Sprites/traje"):
+    def __init__(self, base_path="graficos/Sprites/traje"):
         self.base_path = base_path
         self.sprites_derecha = []
         self.sprites_izquierda = []

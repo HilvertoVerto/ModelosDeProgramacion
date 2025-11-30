@@ -31,12 +31,13 @@ Juego de plataformas básico desarrollado con Pygame siguiendo el patrón de dis
 │   ├── __init__.py
 │   ├── game_controller.py # Controlador principal del juego
 │   └── input_handler.py   # Manejador de inputs del usuario
-└── Sprites/               # Recursos gráficos
-    └── traje/             # Sprites del personaje
-        ├── frente0/
-        ├── frente1/
-        ├── frente2/
-        └── frente3/
+└── graficos/              # Recursos gráficos
+    └── Sprites/           # Sprites del juego
+        └── traje/         # Sprites del personaje
+            ├── frente0/
+            ├── frente1/
+            ├── frente2/
+            └── frente3/
 ```
 
 ## Requisitos

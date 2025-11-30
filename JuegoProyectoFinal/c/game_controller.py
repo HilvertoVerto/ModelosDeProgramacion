@@ -60,8 +60,37 @@ class GameController:
         # Actualizar animación del jugador
         self.jugador.actualizar_frame_animacion(self.sprite_loader.get_num_frames())
 
-        # Actualizar física del jugador
+        # Definir zonas de scroll (20% de cada lado)
+        margen_scroll = self.ancho * 0.2
+        zona_scroll_izquierda = margen_scroll
+        zona_scroll_derecha = self.ancho - margen_scroll
+
+        # Guardar velocidad del jugador antes de aplicar movimiento
+        velocidad_jugador = self.jugador.velocidad_x
+
+        # Verificar si debemos mover el fondo en lugar del jugador
+        mover_fondo = False
+
+        if velocidad_jugador > 0 and self.jugador.rect.x >= zona_scroll_derecha:
+            # Jugador en zona derecha moviéndose a la derecha
+            mover_fondo = True
+        elif velocidad_jugador < 0 and self.jugador.rect.x <= zona_scroll_izquierda:
+            # Jugador en zona izquierda moviéndose a la izquierda
+            mover_fondo = True
+
+        # Si debemos mover el fondo, cancelar movimiento del jugador y mover fondo
+        if mover_fondo:
+            # Mover el fondo en dirección opuesta al movimiento del jugador
+            self.render.mover_fondo(velocidad_jugador)
+            # Cancelar movimiento horizontal del jugador
+            self.jugador.velocidad_x = 0
+
+        # Actualizar física del jugador (incluyendo gravedad y salto)
         self.jugador.update(self.ancho, self.render.get_altura_suelo())
+
+        # Restaurar velocidad para que la animación funcione
+        if mover_fondo:
+            self.jugador.velocidad_x = velocidad_jugador
 
     def renderizar(self):
         """Renderiza todos los elementos del juego"""
