@@ -119,6 +119,7 @@ class PlayState(GameState):
         self.render.set_camara(objetivo_camara)
 
         self.actualizar_buffs()
+        self.verificar_pisar_enemigos()
         self.verificar_derrota()
         self.verificar_victoria()
 
@@ -163,12 +164,44 @@ class PlayState(GameState):
         self.buffos = restantes
         self.buff_timers = self.buff_manager.aplicar(self.jugador, ahora)
 
+    def verificar_pisar_enemigos(self):
+        """Detecta si el jugador cae sobre un enemigo desde arriba y lo elimina."""
+        if self.jugador.velocidad_y <= 0:
+            # Solo detectar si el jugador está cayendo
+            return
+
+        enemigos_eliminados = []
+        for enemigo in self.enemigos:
+            if self.jugador.rect.colliderect(enemigo.rect):
+                # Verificar si el jugador viene desde arriba
+                # El jugador debe estar cayendo y su parte inferior debe estar cerca de la parte superior del enemigo
+                margen_pisada = 15  # Pixeles de tolerancia para considerar que viene de arriba
+                if self.jugador.rect.bottom - margen_pisada <= enemigo.rect.centery:
+                    # El jugador pisó al enemigo desde arriba
+                    enemigos_eliminados.append(enemigo)
+
+                    # Hacer rebotar al jugador (como en Mario)
+                    self.jugador.velocidad_y = -10  # Rebote al pisar enemigo
+
+                    # Emitir evento de enemigo eliminado (patrón Observer)
+                    self.event_bus.emitir("enemigo_eliminado", enemigo)
+
+        # Eliminar enemigos pisados de la lista
+        for enemigo in enemigos_eliminados:
+            self.enemigos.remove(enemigo)
+
     def verificar_derrota(self):
-        """Termina la partida si toca enemigo o cae al vacio."""
+        """Termina la partida si toca enemigo lateralmente o cae al vacio."""
         for enemigo in self.enemigos:
             if self.jugador.rect.colliderect(enemigo.rect) and not self.jugador.invencible:
-                self.event_bus.emitir("game_over")
-                return
+                # Verificar si NO viene desde arriba (para no morir al pisar)
+                margen_pisada = 15
+                viene_desde_arriba = (self.jugador.velocidad_y > 0 and
+                                     self.jugador.rect.bottom - margen_pisada <= enemigo.rect.centery)
+
+                if not viene_desde_arriba:
+                    self.event_bus.emitir("game_over")
+                    return
 
         for proyectil in self.proyectiles:
             if proyectil.vivo and self.jugador.rect.colliderect(proyectil.rect) and not self.jugador.invencible:
