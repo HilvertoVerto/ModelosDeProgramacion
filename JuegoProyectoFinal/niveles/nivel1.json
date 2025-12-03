@@ -1,0 +1,47 @@
+{
+  "nombre": "nivel_largo",
+  "tile_size": 64,
+  "altura_suelo": 64,
+  "fondo": "graficos/Fondo/Fondo.png",
+  "ancho_mundo": 3200,
+  "meta_x": 3150,
+  "spawn": { "x": 120, "y": 300 },
+  "plataformas": [
+    { "x": 0, "y": 536, "w": 600, "h": 64 },
+    { "x": 800, "y": 536, "w": 500, "h": 64 },
+    { "x": 1500, "y": 536, "w": 450, "h": 64 },
+    { "x": 2100, "y": 536, "w": 400, "h": 64 },
+    { "x": 2650, "y": 536, "w": 350, "h": 64 },
+    { "x": 3000, "y": 536, "w": 200, "h": 64 },
+
+    { "x": 220, "y": 440, "w": 240, "h": 32 },
+    { "x": 520, "y": 380, "w": 180, "h": 32 },
+    { "x": 900, "y": 360, "w": 220, "h": 32 },
+    { "x": 1230, "y": 300, "w": 180, "h": 32 },
+    { "x": 1550, "y": 420, "w": 200, "h": 32 },
+    { "x": 1780, "y": 340, "w": 200, "h": 32 },
+    { "x": 2020, "y": 300, "w": 180, "h": 32 },
+    { "x": 2300, "y": 260, "w": 200, "h": 32 },
+    { "x": 2550, "y": 320, "w": 180, "h": 32 },
+    { "x": 2780, "y": 260, "w": 160, "h": 32 },
+    { "x": 2980, "y": 320, "w": 160, "h": 32 }
+  ],
+  "enemigos": [
+    { "tipo": "guerrero", "x": 250, "y": 392, "limite_izq": 220, "limite_der": 520, "velocidad": 2 },
+    { "tipo": "arquero", "x": 930, "y": 312, "limite_izq": 900, "limite_der": 1120, "velocidad": 2 },
+    { "tipo": "mago", "x": 1580, "y": 372, "limite_izq": 1550, "limite_der": 1750, "velocidad": 2.5 },
+    { "tipo": "guerrero", "x": 2050, "y": 252, "limite_izq": 2020, "limite_der": 2180, "velocidad": 2 },
+    { "tipo": "arquero", "x": 2320, "y": 212, "limite_izq": 2300, "limite_der": 2490, "velocidad": 2 },
+    { "tipo": "mago", "x": 2790, "y": 212, "limite_izq": 2780, "limite_der": 3000, "velocidad": 2 }
+  ],
+  "buffos": [
+    { "tipo": "velocidad", "x": 320, "y": 392, "w": 30, "h": 30 },
+    { "tipo": "salto", "x": 980, "y": 312, "w": 30, "h": 30 },
+    { "tipo": "invencible", "x": 2100, "y": 244, "w": 30, "h": 30 },
+    { "tipo": "velocidad", "x": 1180, "y": 252, "w": 30, "h": 30 },
+    { "tipo": "salto", "x": 1750, "y": 292, "w": 30, "h": 30 },
+    { "tipo": "invencible", "x": 2600, "y": 252, "w": 30, "h": 30 },
+    { "tipo": "velocidad", "x": 2920, "y": 272, "w": 30, "h": 30 },
+    { "tipo": "salto", "x": 3050, "y": 272, "w": 30, "h": 30 }
+  ]
+}

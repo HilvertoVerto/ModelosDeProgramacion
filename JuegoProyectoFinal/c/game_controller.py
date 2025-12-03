@@ -1,18 +1,22 @@
-import pygame
+import os
 import sys
+import pygame
 from m.jugador import Jugador
+from m.nivel import Nivel
 from v.sprite_loader import SpriteLoader
 from v.render import Render
 from c.input_handler import InputHandler
+from c.event_bus import EventBus
+from c.state_factory import StateFactory
+
 
 class GameController:
-    """Controlador principal del juego"""
+    """Controlador principal del juego con maquina de estados"""
 
     def __init__(self, ancho=800, alto=600, fps=60):
-        # Inicializar pygame
         pygame.init()
 
-        # Configuración de la ventana
+        # Configuracion de la ventana
         self.ancho = ancho
         self.alto = alto
         self.fps = fps
@@ -22,114 +26,98 @@ class GameController:
         # Reloj para controlar FPS
         self.reloj = pygame.time.Clock()
 
-        # Inicializar componentes MVC
-        self.inicializar_componentes()
-
-        # Estado del juego
+        # Bus de eventos y estado
+        self.event_bus = EventBus()
         self.corriendo = True
+        self.estado_actual = None
+
+        # Cargar datos y objetos principales
+        self.cargar_nivel_principal()
+        self.inicializar_componentes()
+        self.configurar_estados()
+
+    def cargar_nivel_principal(self):
+        """Carga el nivel base desde datos externos"""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        proyecto_dir = os.path.dirname(base_dir)
+        nivel_path = os.path.join(proyecto_dir, "niveles", "nivel1.json")
+        self.nivel_actual = Nivel.desde_archivo(nivel_path, ancho_ventana=self.ancho, alto_ventana=self.alto)
 
     def inicializar_componentes(self):
-        """Inicializa los componentes del patrón MVC"""
-        # Vista
-        self.render = Render(self.ventana, self.ancho, self.alto)
+        """Inicializa componentes del patron MVC"""
+        self.render = Render(
+            self.ventana,
+            self.ancho,
+            self.alto,
+            altura_suelo=self.nivel_actual.altura_suelo,
+            fondo=self.nivel_actual.fondo,
+        )
         self.sprite_loader = SpriteLoader()
         self.sprite_loader.cargar_sprites()
 
-        # Modelo
-        self.jugador = Jugador(100, self.alto - 150, self.alto)
+        spawn_x, spawn_y = self.nivel_actual.spawn
+        self.jugador = Jugador(spawn_x, spawn_y, self.alto)
 
-        # Controlador
+        # Controlador de entrada
         self.input_handler = InputHandler()
 
-    def manejar_eventos(self):
-        """Maneja los eventos del juego usando el InputHandler"""
-        # Procesar eventos de cierre
-        self.corriendo = self.input_handler.procesar_eventos()
-
-        # Procesar movimiento
-        self.input_handler.obtener_movimiento(self.jugador)
-
-    def manejar_salto(self):
-        """Maneja el salto del jugador de forma separada para mejor control"""
-        teclas = pygame.key.get_pressed()
-        if teclas[pygame.K_SPACE] or teclas[pygame.K_UP] or teclas[pygame.K_w]:
-            self.jugador.saltar()
-
-    def actualizar(self):
-        """Actualiza la lógica del juego"""
-        # Actualizar animación del jugador
-        self.jugador.actualizar_frame_animacion(self.sprite_loader.get_num_frames())
-
-        # Definir zonas de scroll (20% de cada lado)
-        margen_scroll = self.ancho * 0.2
-        zona_scroll_izquierda = margen_scroll
-        zona_scroll_derecha = self.ancho - margen_scroll
-
-        # Guardar velocidad del jugador antes de aplicar movimiento
-        velocidad_jugador = self.jugador.velocidad_x
-
-        # Verificar si debemos mover el fondo en lugar del jugador
-        mover_fondo = False
-
-        if velocidad_jugador > 0 and self.jugador.rect.x >= zona_scroll_derecha:
-            # Jugador en zona derecha moviéndose a la derecha
-            mover_fondo = True
-        elif velocidad_jugador < 0 and self.jugador.rect.x <= zona_scroll_izquierda:
-            # Jugador en zona izquierda moviéndose a la izquierda
-            mover_fondo = True
-
-        # Si debemos mover el fondo, cancelar movimiento del jugador y mover fondo
-        if mover_fondo:
-            # Mover el fondo en dirección opuesta al movimiento del jugador
-            self.render.mover_fondo(velocidad_jugador)
-            # Cancelar movimiento horizontal del jugador
-            self.jugador.velocidad_x = 0
-
-        # Actualizar física del jugador (incluyendo gravedad y salto)
-        self.jugador.update(self.ancho, self.render.get_altura_suelo())
-
-        # Restaurar velocidad para que la animación funcione
-        if mover_fondo:
-            self.jugador.velocidad_x = velocidad_jugador
-
-    def renderizar(self):
-        """Renderiza todos los elementos del juego"""
-        # Limpiar pantalla
-        self.render.limpiar_pantalla()
-
-        # Dibujar suelo
-        self.render.dibujar_suelo()
-
-        # Obtener sprite apropiado del jugador
-        sprite_jugador = self.sprite_loader.get_sprite(
-            self.jugador.mirando_derecha,
-            self.jugador.moviendo,
-            self.jugador.frame_actual
+    def configurar_estados(self):
+        """Configura la maquina de estados simple"""
+        factory = StateFactory(
+            self.event_bus,
+            self.render,
+            self.sprite_loader,
+            self.input_handler,
+            self.jugador,
+            self.nivel_actual,
         )
 
-        # Dibujar jugador
-        self.render.dibujar_jugador(self.jugador.rect, sprite_jugador)
+        self.menu_state = factory.crear_menu_state()
+        self.play_state = factory.crear_play_state()
 
-        # Actualizar pantalla
-        self.render.actualizar_pantalla()
+        self.estado_actual = self.menu_state
+        self.event_bus.suscribir("cambiar_estado", self.cambiar_estado)
+        self.event_bus.suscribir("salir", self._salir)
+        self.event_bus.suscribir("game_over", self.game_over)
+        self.event_bus.suscribir("victoria", self.victoria)
+
+    def cambiar_estado(self, nuevo_estado):
+        """Cambia el estado actual si es valido"""
+        if nuevo_estado == "menu":
+            self.estado_actual = self.menu_state
+            self.render.set_camara(0)
+        elif nuevo_estado == "juego":
+            self.play_state.reset()
+            self.estado_actual = self.play_state
+
+    def game_over(self, _payload=None):
+        """Regresa al menu al perder"""
+        self.cambiar_estado("menu")
+
+    def victoria(self, _payload=None):
+        """Regresa al menu al ganar"""
+        self.cambiar_estado("menu")
+
+    def _salir(self, _payload=None):
+        self.corriendo = False
 
     def ejecutar(self):
         """Loop principal del juego"""
         while self.corriendo:
-            # Manejar eventos e inputs
-            self.manejar_eventos()
-            self.manejar_salto()
+            eventos = pygame.event.get()
 
-            # Actualizar lógica
-            self.actualizar()
+            # Eventos globales
+            for evento in eventos:
+                if evento.type == pygame.QUIT:
+                    self.corriendo = False
 
-            # Renderizar
-            self.renderizar()
+            # Delegar en el estado actual
+            self.estado_actual.manejar_eventos(eventos)
+            self.estado_actual.actualizar()
+            self.estado_actual.renderizar()
 
-            # Controlar FPS
             self.reloj.tick(self.fps)
 
-        # Cerrar pygame
         self.cerrar()
 
     def cerrar(self):
