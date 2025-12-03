@@ -1,5 +1,6 @@
 import os
 import pygame
+from v.sprite_manager import SpriteManager
 
 
 class Render:
@@ -40,6 +41,10 @@ class Render:
 
         # HUD
         self.hud_font = pygame.font.SysFont("arial", 18)
+
+        # Sprite Manager
+        self.sprite_manager = SpriteManager()
+        self.sprite_manager.cargar_todos()
 
     def cargar_fondo(self):
         """Carga la imagen de fondo si existe"""
@@ -94,51 +99,49 @@ class Render:
             pygame.draw.rect(self.ventana, self.TIERRA, desplazado, border_radius=8)
 
     def dibujar_enemigos(self, enemigos):
-        """Dibuja enemigos como rectangulos simples"""
+        """Dibuja enemigos usando sus sprites"""
         for enemigo in enemigos:
             desplazado = enemigo.rect.move(-self.camara_x, 0)
-            color = getattr(enemigo, "color", self.ROJO_ENEMIGO)
-            pygame.draw.rect(self.ventana, color, desplazado, border_radius=8)
-            pygame.draw.rect(self.ventana, self.MARRON, desplazado, width=1, border_radius=8)
 
+            # Obtener sprite según tipo de arma
             arma = getattr(enemigo, "arma", None)
-            if arma:
-                arma_color = getattr(arma, "color", self.MARRON)
-                arma_width = max(6, min(20, 10 + int(arma.alcance * 4)))
-                arma_height = max(4, int(desplazado.height * 0.35))
-                arma_rect = pygame.Rect(
-                    desplazado.right - arma_width // 3,
-                    desplazado.centery - arma_height // 2,
-                    arma_width,
-                    arma_height,
-                )
-                pygame.draw.rect(self.ventana, arma_color, arma_rect, border_radius=6)
-                pygame.draw.rect(self.ventana, self.BARRA_BORDE, arma_rect, width=1, border_radius=6)
+            tipo_arma = arma.nombre if arma else "Espada"
+            sprite = self.sprite_manager.get_sprite_enemigo(tipo_arma)
 
-                # Indicador de alcance
-                alcance_px = max(12, int(arma.alcance * 18))
-                pygame.draw.line(
-                    self.ventana,
-                    arma_color,
-                    (arma_rect.right, arma_rect.centery),
-                    (arma_rect.right + alcance_px, arma_rect.centery),
-                    width=3,
-                )
+            if sprite:
+                # Dibujar sprite centrado en la posición del enemigo
+                sprite_rect = sprite.get_rect(center=desplazado.center)
+                self.ventana.blit(sprite, sprite_rect)
+            else:
+                # Fallback: rectángulo de color
+                color = getattr(enemigo, "color", self.ROJO_ENEMIGO)
+                pygame.draw.rect(self.ventana, color, desplazado, border_radius=8)
+                pygame.draw.rect(self.ventana, self.MARRON, desplazado, width=1, border_radius=8)
 
     def dibujar_buffos(self, buffos):
-        """Dibuja buffos coleccionables"""
-        colores = {
-            "velocidad": self.AMARILLO_BUFF,
-            "salto": self.AZUL_BUFF,
-            "invencible": self.VERDE_BUFF,
-        }
+        """Dibuja buffos coleccionables usando sprites"""
         for buffo in buffos:
             desplazado = buffo.rect.move(-self.camara_x, 0)
-            color = colores.get(buffo.tipo, self.AMARILLO_BUFF)
-            centro = desplazado.center
-            radio = max(6, min(desplazado.width, desplazado.height) // 2)
-            pygame.draw.circle(self.ventana, color, centro, radio)
-            pygame.draw.circle(self.ventana, self.BARRA_BORDE, centro, radio, width=1)
+
+            # Obtener sprite según tipo de buff
+            sprite = self.sprite_manager.get_sprite_buff(buffo.tipo)
+
+            if sprite:
+                # Dibujar sprite centrado en la posición del buff
+                sprite_rect = sprite.get_rect(center=desplazado.center)
+                self.ventana.blit(sprite, sprite_rect)
+            else:
+                # Fallback: círculo de color
+                colores = {
+                    "velocidad": self.AMARILLO_BUFF,
+                    "salto": self.AZUL_BUFF,
+                    "invencible": self.VERDE_BUFF,
+                }
+                color = colores.get(buffo.tipo, self.AMARILLO_BUFF)
+                centro = desplazado.center
+                radio = max(6, min(desplazado.width, desplazado.height) // 2)
+                pygame.draw.circle(self.ventana, color, centro, radio)
+                pygame.draw.circle(self.ventana, self.BARRA_BORDE, centro, radio, width=1)
 
     def dibujar_meta(self, meta_x):
         """Dibuja una meta vertical simple al final del mapa"""
@@ -147,13 +150,24 @@ class Render:
             pygame.draw.rect(self.ventana, self.MORADO_META, (x, 0, 6, self.alto))
 
     def dibujar_proyectiles(self, proyectiles):
-        """Dibuja proyectiles de enemigos"""
+        """Dibuja proyectiles usando sprites"""
         for proyectil in proyectiles:
             if not proyectil.vivo:
                 continue
             desplazado = proyectil.rect.move(-self.camara_x, 0)
-            pygame.draw.rect(self.ventana, proyectil.color, desplazado, border_radius=4)
-            pygame.draw.rect(self.ventana, self.BARRA_BORDE, desplazado, width=1, border_radius=4)
+
+            # Obtener sprite según dirección del proyectil
+            direccion = 1 if proyectil.vx > 0 else -1
+            sprite = self.sprite_manager.get_sprite_proyectil(direccion)
+
+            if sprite:
+                # Dibujar sprite centrado en la posición del proyectil
+                sprite_rect = sprite.get_rect(center=desplazado.center)
+                self.ventana.blit(sprite, sprite_rect)
+            else:
+                # Fallback: rectángulo de color
+                pygame.draw.rect(self.ventana, proyectil.color, desplazado, border_radius=4)
+                pygame.draw.rect(self.ventana, self.BARRA_BORDE, desplazado, width=1, border_radius=4)
 
     def dibujar_buff_timers(self, buff_timers):
         """HUD de temporizadores de buffos con barra y texto."""
