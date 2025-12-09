@@ -1,4 +1,4 @@
-from c.game_state import MenuState, PlayState
+from c.game_state import MenuState, PlayState, PauseState
 
 
 class StateFactory:
@@ -24,3 +24,6 @@ class StateFactory:
             self.jugador,
             self.nivel,
         )
+
+    def crear_pause_state(self, play_state):
+        return PauseState(self.event_bus, self.render, self.input_handler, play_state)

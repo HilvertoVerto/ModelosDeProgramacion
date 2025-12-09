@@ -74,6 +74,7 @@ class GameController:
 
         self.menu_state = factory.crear_menu_state()
         self.play_state = factory.crear_play_state()
+        self.pause_state = factory.crear_pause_state(self.play_state)
 
         self.estado_actual = self.menu_state
         self.event_bus.suscribir("cambiar_estado", self.cambiar_estado)
@@ -87,8 +88,12 @@ class GameController:
             self.estado_actual = self.menu_state
             self.render.set_camara(0)
         elif nuevo_estado == "juego":
-            self.play_state.reset()
+            if self.estado_actual == self.menu_state:
+                self.play_state.reset()
             self.estado_actual = self.play_state
+        elif nuevo_estado == "pausa":
+            self.pause_state.capturar_snapshot()
+            self.estado_actual = self.pause_state
 
     def game_over(self, _payload=None):
         """Regresa al menu al perder"""
